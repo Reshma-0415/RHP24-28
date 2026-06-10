@@ -1,23 +1,26 @@
 class Solution {
-    public int lcs(String s1, String s2) {
-        int m = s1.length();
-        int n = s2.length();
-        int[][] dp = new int[m + 1][n + 1];
 
-        for (int i = 1; i <= m; i++) {
-            for (int j = 1; j <= n; j++) {
+    public int longestCommonSubstring(String s1, String s2) {
+
+        int[][] dp = new int[s1.length() + 1][s2.length() + 1];
+
+        int max = 0;
+
+        for (int i = 1; i <= s1.length(); i++) {
+            for (int j = 1; j <= s2.length(); j++) {
+
                 if (s1.charAt(i - 1) == s2.charAt(j - 1)) {
                     dp[i][j] = dp[i - 1][j - 1] + 1;
+
+                    if (dp[i][j] > max) {
+                        max = dp[i][j];
+                    }
                 } else {
-                    dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                    dp[i][j] = 0;
                 }
             }
         }
-        return dp[m][n];
-    }
 
-    public static void main(String[] args) {
-        Solution obj = new Solution();
-        System.out.println(obj.lcs("level", "evening")); // 3
+        return max;
     }
 }
