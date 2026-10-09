@@ -1,0 +1,149 @@
+
+import java.util.*;
+
+public class Main {
+
+    static int m, n;
+    static char[][] a;
+
+    static class Node {
+        int r, c, d, steps;
+
+        Node(int r, int c, int d, int steps) {
+            this.r = r;
+            this.c = c;
+            this.d = d;
+            this.steps = steps;
+        }
+    }
+
+    // d = 0 means horizontal, d = 1 means vertical
+
+    static boolean free(int r, int c) {
+        return r >= 0 && r < m && c >= 0 && c < n
+                && a[r][c] != 'H';
+    }
+
+    static boolean valid(int r, int c, int d) {
+        if (d == 0)
+            return free(r, c) && free(r, c + 1);
+
+        return free(r, c) && free(r + 1, c);
+    }
+
+    static boolean rotate(int r, int c) {
+        for (int i = r; i < r + 2; i++) {
+            for (int j = c; j < c + 2; j++) {
+                if (!free(i, j))
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        m = sc.nextInt();
+        n = sc.nextInt();
+
+        a = new char[m][n];
+
+        ArrayList<int[]> start = new ArrayList<>();
+        ArrayList<int[]> end = new ArrayList<>();
+
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                a[i][j] = sc.next().charAt(0);
+
+                if (a[i][j] == 's')
+                    start.add(new int[]{i, j});
+
+                if (a[i][j] == 'S')
+                    end.add(new int[]{i, j});
+            }
+        }
+
+        if (start.size() != 2 || end.size() != 2) {
+            System.out.println("Impossible");
+            return;
+        }
+
+        int sr = Math.min(start.get(0)[0], start.get(1)[0]);
+        int sC = Math.min(start.get(0)[1], start.get(1)[1]);
+
+        int er = Math.min(end.get(0)[0], end.get(1)[0]);
+        int eC = Math.min(end.get(0)[1], end.get(1)[1]);
+
+        int sd = start.get(0)[0] == start.get(1)[0] ? 0 : 1;
+        int ed = end.get(0)[0] == end.get(1)[0] ? 0 : 1;
+
+        boolean[][][] vis = new boolean[m][n][2];
+        Queue<Node> q = new LinkedList<>();
+
+        if (!valid(sr, sC, sd)) {
+            System.out.println("Impossible");
+            return;
+        }
+
+        q.add(new Node(sr, sC, sd, 0));
+        vis[sr][sC][sd] = true;
+
+        int[] dr = {-1, 1, 0, 0};
+        int[] dc = {0, 0, -1, 1};
+
+        while (!q.isEmpty()) {
+            Node cur = q.poll();
+
+            if (cur.r == er && cur.c == eC && cur.d == ed) {
+                System.out.println(cur.steps);
+                return;
+            }
+
+            // Move the sofa one cell
+            for (int k = 0; k < 4; k++) {
+                int nr = cur.r + dr[k];
+                int nc = cur.c + dc[k];
+
+                if (valid(nr, nc, cur.d)
+                        && !vis[nr][nc][cur.d]) {
+                    vis[nr][nc][cur.d] = true;
+                    q.add(new Node(nr, nc, cur.d, cur.steps + 1));
+                }
+            }
+
+            // Rotate the sofa inside a free 2x2 area
+            if (cur.d == 0) {
+                for (int r = cur.r - 1; r <= cur.r; r++) {
+                    int c = cur.c;
+
+                    if (rotate(r, c)) {
+                        for (int nc = c; nc <= c + 1; nc++) {
+                            if (valid(r, nc, 1)
+                                    && !vis[r][nc][1]) {
+                                vis[r][nc][1] = true;
+                                q.add(new Node(r, nc, 1, cur.steps + 1));
+                            }
+                        }
+                    }
+                }
+            } else {
+                for (int c = cur.c - 1; c <= cur.c; c++) {
+                    int r = cur.r;
+
+                    if (rotate(r, c)) {
+                        for (int nr = r; nr <= r + 1; nr++) {
+                            if (valid(nr, c, 0)
+                                    && !vis[nr][c][0]) {
+                                vis[nr][c][0] = true;
+                                q.add(new Node(nr, c, 0, cur.steps + 1));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        System.out.println("Impossible");
+    }
+}
